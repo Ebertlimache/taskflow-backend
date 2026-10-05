@@ -7,8 +7,15 @@ module.exports = function errorHandler(err, req, res, next) {
   }
 
   if (err instanceof ZodError) {
+    // Zod 4 exposes issues on `.issues` (`.errors` is undefined).
+    const issues = err.issues ?? err.errors ?? []
+    const message = issues
+      .map((e) => e.message)
+      .filter(Boolean)
+      .join(', ')
+
     return res.status(400).json({
-      message: err.errors.map((e) => e.message).join(', '),
+      message: message || 'Validation failed',
     })
   }
 
